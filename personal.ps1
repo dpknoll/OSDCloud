@@ -22,7 +22,7 @@ if ((Get-MyComputerManufacturer) -match 'Lenovo') {
 
     if ((Get-MyComputerManufacturer) -match 'Microsoft') {
        Write-Host  -ForegroundColor Cyan "Starting OSDCloudGUI for Microsoft Surface"
-       Write-Host  -ForegroundColor Red "Make sure to choose Pro and the correct driver pack"
+       Write-Host  -ForegroundColor Red "**WARNING** - Make sure to choose Pro and the correct driver pack"
        Start-Sleep -Seconds 5
         Start-OSDCloudGUI
     }
