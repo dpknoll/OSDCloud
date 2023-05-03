@@ -7,6 +7,7 @@ if ((Get-MyComputerModel) -match 'Virtual') {
     Set-DisRes 1600
 }
 
+
 #Make sure I have the latest OSD Content
 Write-Host  -ForegroundColor Cyan "Updating the awesome OSD PowerShell Module"
 Install-Module OSD -Force
@@ -19,9 +20,16 @@ Write-Host  -ForegroundColor Cyan "Ejecting ISO"
 Write-Warning "That didn't work because I haven't coded it yet!"
 #Start-Sleep -Seconds 5
 
-#Start OSDCloud ZTI the RIGHT way
-Write-Host  -ForegroundColor Cyan "Start OSDCloud with MY Parameters"
-Start-OSDCloud -OSLanguage en-us -OSEdition Pro -OSActivation Retail
+if ((Get-MyComputerManufacturer) -match 'Lenovo') {
+        #Start OSDCloud ZTI the RIGHT way
+        Write-Host  -ForegroundColor Cyan "Start OSDCloud with MY Parameters"
+        Start-OSDCloud -OSLanguage en-us -OSEdition Pro -OSActivation Retail
+    }
+
+    if ((Get-MyComputerManufacturer) -match 'Microsoft') {
+       Write-Host  -ForegroundColor Cyan "Start OSDCloudGUI"
+        Start-OSDCloudGUI
+    }
 
 #Anything I want  can go right here and I can change it at any time since it is in the Cloud!!!!!
 Write-Host  -ForegroundColor Cyan "Starting OSDCloud PostAction ..."
