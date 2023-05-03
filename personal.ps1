@@ -28,7 +28,7 @@ if ((Get-MyComputerManufacturer) -match 'Lenovo') {
 
     if ((Get-MyComputerManufacturer) -match 'Microsoft') {
        Write-Host  -ForegroundColor Cyan "Start OSDCloudGUI"
-        Start-OSDCloudGUI
+        Start-OSDCloudGUI -OSEdition Pro
     }
 
 #Anything I want  can go right here and I can change it at any time since it is in the Cloud!!!!!
