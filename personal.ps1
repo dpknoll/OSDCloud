@@ -24,8 +24,12 @@ if ((Get-MyComputerManufacturer) -match 'Lenovo') {
        Write-Host  -ForegroundColor Cyan "Starting OSDCloudGUI for Microsoft Surface"
        Write-Host  -ForegroundColor Red "**WARNING** - Make sure to choose Pro and the correct driver pack"
        $OSDModuleResource.OSDCloud.Default.Edition = 'Pro'
+       $OSDModuleResource.OSDCloud.Default.Activation = 'Retail'
+       $OSDModuleResource.OSDCloud.Values.Name = 'Windows 11 22H2 x64','Windows 10 22H2 x64'
+       $OSDModuleResource.StartOSDCloudGUI.BrandName = 'Henny Penny IT Services - OSDCloud'
+       $OSDModuleResource.StartOSDCloudGUI.BrandColor = 'RED'       
        Start-Sleep -Seconds 10
-        Start-OSDCloudGUI
+       Start-OSDCloudGUI
     }
 
 #Restart from WinPE
