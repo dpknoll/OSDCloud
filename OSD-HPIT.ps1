@@ -21,8 +21,8 @@ if ((Get-MyComputerManufacturer) -match 'Lenovo') {
     }
 
     if ((Get-MyComputerManufacturer) -match 'Microsoft') {
-       Write-Host  -ForegroundColor Cyan "Starting OSDCloudGUI for Microsoft Surface"
-       Write-Host  -ForegroundColor Red "**WARNING** - Make sure to choose Pro and the correct driver pack"
+       Write-Host  -ForegroundColor Cyan "Starting OSDCloudGUI"
+       Write-Host  -ForegroundColor Red "**WARNING** - Make sure to select the correct driver pack"
        $OSDModuleResource.OSDCloud.Default.Edition = 'Pro'
        $OSDModuleResource.OSDCloud.Default.Activation = 'Retail'
        $OSDModuleResource.OSDCloud.Values.Name = 'Windows 11 22H2 x64','Windows 10 22H2 x64'
@@ -33,6 +33,6 @@ if ((Get-MyComputerManufacturer) -match 'Lenovo') {
     }
 
 #Restart from WinPE
-Write-Host  -ForegroundColor Cyan "Restarting in 20 seconds!"
-Start-Sleep -Seconds 20
+Write-Host  -ForegroundColor Cyan "Restarting in 10 seconds!"
+Start-Sleep -Seconds 10
 wpeutil reboot
