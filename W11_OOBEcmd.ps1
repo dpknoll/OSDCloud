@@ -80,7 +80,7 @@ If (!(Test-Path "C:\ProgramData\OSDeploy")) {
 }
 $OOBEDeployJson | Out-File -FilePath "C:\ProgramData\OSDeploy\OSDeploy.OOBEDeploy.json" -Encoding ascii -Force
 
-<#
+
 #================================================
 #  [PostOS] AutopilotOOBE Configuration Staging
 #================================================
@@ -113,13 +113,15 @@ $AutopilotOOBEJson = @"
     "Docs":  "https://google.com/",
     "Title":  "Autopilot Manual Register"
 }
+
+
 "@
 
 If (!(Test-Path "C:\ProgramData\OSDeploy")) {
     New-Item "C:\ProgramData\OSDeploy" -ItemType Directory -Force | Out-Null
 }
 $AutopilotOOBEJson | Out-File -FilePath "C:\ProgramData\OSDeploy\OSDeploy.AutopilotOOBE.json" -Encoding ascii -Force
-#>
+
 
 
 #================================================
