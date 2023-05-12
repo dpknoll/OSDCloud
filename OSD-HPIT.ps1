@@ -24,7 +24,16 @@ Import-Module OSD -Force
        $OSDModuleResource.StartOSDCloudGUI.BrandColor = 'RED'       
        Start-Sleep -Seconds 10
        Start-OSDCloudGUI
-   
+       
+#================================================
+#  [PostOS] SetupComplete CMD Command Line
+#================================================
+Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
+$SetupCompleteCMD = @'
+powershell.exe -Command Set-ExecutionPolicy RemoteSigned -Force
+powershell.exe -Command "& {IEX (IRM oobetasks.osdcloud.ch)}"
+'@
+$SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force   
 
 #Restart from WinPE
 Write-Host  -ForegroundColor Cyan "Restarting in 10 seconds!"
