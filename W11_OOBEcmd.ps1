@@ -80,7 +80,6 @@ If (!(Test-Path "C:\ProgramData\OSDeploy")) {
 }
 $OOBEDeployJson | Out-File -FilePath "C:\ProgramData\OSDeploy\OSDeploy.OOBEDeploy.json" -Encoding ascii -Force
 
-
 #================================================
 #  [PostOS] AutopilotOOBE Configuration Staging
 #================================================
@@ -113,16 +112,12 @@ $AutopilotOOBEJson = @"
     "Docs":  "https://google.com/",
     "Title":  "Autopilot Manual Register"
 }
-
-
 "@
 
 If (!(Test-Path "C:\ProgramData\OSDeploy")) {
     New-Item "C:\ProgramData\OSDeploy" -ItemType Directory -Force | Out-Null
 }
 $AutopilotOOBEJson | Out-File -FilePath "C:\ProgramData\OSDeploy\OSDeploy.AutopilotOOBE.json" -Encoding ascii -Force
-
-
 
 #================================================
 #  [PostOS] AutopilotOOBE CMD Command Line
@@ -131,8 +126,8 @@ Write-Host -ForegroundColor Green "Create C:\Windows\System32\OOBE.cmd"
 $OOBECMD = @'
 PowerShell -NoL -Com Set-ExecutionPolicy RemoteSigned -Force
 Set Path = %PATH%;C:\Program Files\WindowsPowerShell\Scripts
+Start /Wait PowerShell -NoL -C Install-Module AutopilotOOBE -Force -Verbose
 Start /Wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
-Start /Wait PowerShell -NoL -C Invoke-WebPSScript https://raw.githubusercontent.com/AkosBakos/OSDCloud/main/Install-EmbeddedProductKey.ps1
 Start /Wait PowerShell -NoL -C Start-OOBEDeploy
 Start /Wait PowerShell -NoL -C Invoke-WebPSScript https://cleanup.osdcloud.ch
 Start /Wait PowerShell -NoL -C Restart-Computer -Force
