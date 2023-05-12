@@ -30,8 +30,27 @@ Import-Module OSD -Force
 #================================================
 Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
 $SetupCompleteCMD = @'
-powershell.exe -Command Set-ExecutionPolicy RemoteSigned -Force
-powershell.exe -Command "& {IEX (IRM https://cleanup.osdcloud.ch)}"
+Write-Host "Execute OSD Cloud Cleanup Script" -ForegroundColor Green
+
+# Copying the OOBEDeploy and AutopilotOOBE Logs
+Get-ChildItem 'C:\Windows\Temp' -Filter *OOBE* | Copy-Item -Destination 'C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\OSD' -Force
+
+# Copying OSDCloud Logs
+If (Test-Path -Path 'C:\OSDCloud\Logs') {
+    Move-Item 'C:\OSDCloud\Logs\*.*' -Destination 'C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\OSD' -Force
+}
+Move-Item 'C:\ProgramData\OSDeploy\*.*' -Destination 'C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\OSD' -Force
+
+If (Test-Path -Path 'C:\Temp') {
+    Get-ChildItem 'C:\Temp' -Filter *OOBE* | Copy-Item -Destination 'C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\OSD' -Force
+    Get-ChildItem 'C:\Windows\Temp' -Filter *Events* | Copy-Item -Destination 'C:\ProgramData\Microsoft\IntuneManagementExtension\Logs\OSD' -Force
+}
+
+# Cleanup directories
+If (Test-Path -Path 'C:\OSDCloud') { Remove-Item -Path 'C:\OSDCloud' -Recurse -Force }
+If (Test-Path -Path 'C:\Drivers') { Remove-Item 'C:\Drivers' -Recurse -Force }
+#If (Test-Path -Path 'C:\Temp') { Remove-Item 'C:\Temp' -Recurse -Force }
+Get-ChildItem 'C:\Windows\Temp' -Filter *membeer*  | Remove-Item -Force
 '@
 $SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force   
 
