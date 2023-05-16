@@ -128,7 +128,7 @@ PowerShell -NoL -Com Set-ExecutionPolicy RemoteSigned -Force
 Set Path = %PATH%;C:\Program Files\WindowsPowerShell\Scripts
 Start /Wait PowerShell -NoL -C Install-Module OSD -Force -Verbose
 Start /Wait PowerShell -NoL -C Start-OOBEDeploy
-Start /Wait PowerShell -NoL -C Invoke-WebPSScript https://raw.githubusercontent.com/dpknoll/OSDCloud/9a5ab4df2700fa4d5875aa915307e683ca85d43e/CleanupOSDCloud
+REM Start /Wait PowerShell -NoL -C Invoke-WebPSScript https://raw.githubusercontent.com/dpknoll/OSDCloud/9a5ab4df2700fa4d5875aa915307e683ca85d43e/CleanupOSDCloud
 Start /Wait PowerShell -NoL -C Restart-Computer -Force
 '@
 $OOBECMD | Out-File -FilePath 'C:\Windows\System32\OOBE.cmd' -Encoding ascii -Force
@@ -139,7 +139,7 @@ $OOBECMD | Out-File -FilePath 'C:\Windows\System32\OOBE.cmd' -Encoding ascii -Fo
 Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
 $SetupCompleteCMD = @'
 powershell.exe -Command Set-ExecutionPolicy RemoteSigned -Force
-powershell.exe -Command "& {IEX (IRM https://raw.githubusercontent.com/dpknoll/OSDCloud/9a5ab4df2700fa4d5875aa915307e683ca85d43e/CleanupOSDCloud)}"
+REM powershell.exe -Command "& {IEX (IRM https://raw.githubusercontent.com/dpknoll/OSDCloud/9a5ab4df2700fa4d5875aa915307e683ca85d43e/CleanupOSDCloud)}"
 '@
 $SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force
 
