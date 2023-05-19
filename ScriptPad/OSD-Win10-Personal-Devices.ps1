@@ -45,8 +45,15 @@ $OOBECMD | Out-File -FilePath 'C:\Windows\System32\OOBE.cmd' -Encoding ascii -Fo
 #================================================
 Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
 $SetupCompleteCMD = @'
-REM rd /s /q C:\OSDCloud
-REM rd /s /q C:\Drivers
+REM  Moving OSDCloud Logs
+md C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+move /y C:\OSDCloud\Logs C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+move /y C:\ProgramData\OSDeploy C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+
+REM Cleanup directories
+rd /s /q C:\Drivers
+rd /s /q C:\OSDCloud
+rd /s /q C:\Temp
 '@
 $SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force
 
