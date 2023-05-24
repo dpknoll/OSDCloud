@@ -28,7 +28,7 @@ $Global:MyOSDCloud = @{
 
 $Params = @{
     OSVersion = "Windows 10"
-    OSBuild = "21H2"
+    OSBuild = "22H2"
     OSEdition = "Pro"
     OSLanguage = "en-us"
     Firmware = $false
