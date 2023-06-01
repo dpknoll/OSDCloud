@@ -20,7 +20,7 @@ Import-Module OSD -Force
        $OSDModuleResource.OSDCloud.Default.Edition = 'Pro'
        $OSDModuleResource.OSDCloud.Default.Activation = 'Retail'
        $OSDModuleResource.OSDCloud.Values.Name = 'Windows 11 22H2 x64','Windows 10 22H2 x64'
-       $OSDModuleResource.StartOSDCloudGUI.BrandName = 'Henny Penny IT Services - OSDCloud'
+       $OSDModuleResource.StartOSDCloudGUI.BrandName = 'OSDCloud GUI'
        $OSDModuleResource.StartOSDCloudGUI.BrandColor = 'RED'       
        Start-Sleep -Seconds 10
        Start-OSDCloudGUI
