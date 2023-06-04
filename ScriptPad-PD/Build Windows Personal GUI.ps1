@@ -30,10 +30,16 @@ Import-Module OSD -Force
 #================================================
 Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
 $SetupCompleteCMD = @'
-powershell.exe -Command Set-ExecutionPolicy RemoteSigned -Force
-powershell.exe -Command "& {IEX (IRM oobetasks.osdcloud.ch)}"
+REM  Moving OSDCloud Logs
+md C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+move /y C:\OSDCloud\Logs C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+move /y C:\ProgramData\OSDeploy C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
+REM Cleanup directories
+rd /s /q C:\Drivers
+rd /s /q C:\OSDCloud
+rd /s /q C:\Temp
 '@
-$SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force   
+$SetupCompleteCMD | Out-File -FilePath 'C:\Windows\Setup\Scripts\SetupComplete.cmd' -Encoding ascii -Force
 
 #Restart from WinPE
 Write-Host  -ForegroundColor Cyan "Restarting in 10 seconds!"
