@@ -19,7 +19,7 @@ Import-Module OSD -Force
        Write-Host  -ForegroundColor Red "**WARNING** - Make sure to select the correct driver pack"
        $OSDModuleResource.OSDCloud.Default.Edition = 'Pro'
        $OSDModuleResource.OSDCloud.Default.Activation = 'Retail'
-       $OSDModuleResource.OSDCloud.Values.Name = 'Windows 11 22H2 x64','Windows 10 22H2 x64'
+       $OSDModuleResource.OSDCloud.Values.Name = 'Windows 11 23H2 x64','Windows 10 22H2 x64'
        $OSDModuleResource.StartOSDCloudGUI.BrandName = 'OSDCloud GUI'
        $OSDModuleResource.StartOSDCloudGUI.BrandColor = 'RED'       
        Start-Sleep -Seconds 10
