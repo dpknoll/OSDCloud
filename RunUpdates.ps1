@@ -1,71 +1,63 @@
 # ============================================
-# RunUpdates.ps1
-# Full Windows Update Loop for OSDCloud
+# RunUpdates.ps1 (Resilient Version)
 # ============================================
 
-# Start logging
 $LogPath = "C:\Windows\Temp\RunUpdates.log"
 Start-Transcript -Path $LogPath -Append -Force
 
-Write-Host "===== Starting Windows Update Process =====" -ForegroundColor Cyan
+Write-Host "===== Starting Windows Update ====="
 
-# Ensure TLS 1.2 (important for GitHub / Update endpoints)
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Install required modules
+# Ensure module
 if (!(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
-    Write-Host "Installing PSWindowsUpdate module..." -ForegroundColor Yellow
     Install-PackageProvider -Name NuGet -Force | Out-Null
     Install-Module PSWindowsUpdate -Force -Confirm:$false | Out-Null
 }
 
-Import-Module PSWindowsUpdate -Force
+Import-Module PSWindowsUpdate
 
-# Enable Microsoft Update (Office, etc.)
-Write-Host "Enabling Microsoft Update service..." -ForegroundColor Yellow
+# Enable Microsoft Update
 Add-WUServiceManager -MicrosoftUpdate -Confirm:$false | Out-Null
 
-# Reset Windows Update components (helps reliability)
-Write-Host "Resetting Windows Update components..." -ForegroundColor Yellow
-Reset-WUComponents
+# ---- Create scheduled task for persistence ----
+$TaskName = "RunUpdatesResume"
 
-# Loop until fully patched
-$UpdatesRemaining = $true
+$Action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
+    -Argument "-NoL -ExecutionPolicy Bypass -File C:\Windows\Temp\RunUpdates.ps1"
 
-while ($UpdatesRemaining) {
+$Trigger = New-ScheduledTaskTrigger -AtStartup
 
-    Write-Host "Checking for updates..." -ForegroundColor Cyan
+Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Force | Out-Null
+
+do {
+    Write-Host "Scanning for updates..."
 
     $updates = Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
 
     if ($updates.Count -eq 0) {
-        Write-Host "No updates found. System is up to date." -ForegroundColor Green
+        Write-Host "No more updates."
         break
     }
 
-    Write-Host "$($updates.Count) updates found. Installing..." -ForegroundColor Yellow
+    Write-Host "Installing $($updates.Count) updates..."
 
-    Install-WindowsUpdate `
-        -MicrosoftUpdate `
-        -AcceptAll `
-        -IgnoreUserInput `
-        -AutoReboot
+    Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
 
-    Start-Sleep -Seconds 15
+    $reboot = (Get-WURebootStatus).RebootRequired
 
-    # Check reboot status
-    $rebootStatus = Get-WURebootStatus
-
-    if ($rebootStatus.RebootRequired) {
-        Write-Host "Reboot required. Restarting system..." -ForegroundColor Yellow
+    if ($reboot) {
+        Write-Host "Reboot required..."
         Stop-Transcript
         Restart-Computer -Force
         exit
     }
 
-    Write-Host "Continuing update scan..." -ForegroundColor Cyan
-}
+} while ($true)
 
-Write-Host "===== Windows Update Process Complete =====" -ForegroundColor Green
+# Cleanup scheduled task when done
+Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+
+Write-Host "===== Updates Complete ====="
 
 Stop-Transcript
