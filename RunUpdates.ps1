@@ -1,63 +1,132 @@
-# ============================================
-# RunUpdates.ps1 (Resilient Version)
-# ============================================
+# ===============================
+# OOBE-SAFE WINDOWS UPDATE SCRIPT
+# ===============================
 
-$LogPath = "C:\Windows\Temp\RunUpdates.log"
-Start-Transcript -Path $LogPath -Append -Force
+Start-Transcript -Path "C:\Windows\Temp\RunUpdates.log" -Append
 
-Write-Host "===== Starting Windows Update ====="
+Write-Output "===== Starting Windows Update ====="
 
-[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+try {
+    # ---------------------------
+    # Force TLS 1.2 (required)
+    # ---------------------------
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Ensure module
-if (!(Get-Module -ListAvailable -Name PSWindowsUpdate)) {
-    Install-PackageProvider -Name NuGet -Force | Out-Null
-    Install-Module PSWindowsUpdate -Force -Confirm:$false | Out-Null
+    # ---------------------------
+    # Ensure temp working dirs
+    # ---------------------------
+    $TempPath = "C:\Windows\Temp\PSBootstrap"
+    New-Item -Path $TempPath -ItemType Directory -Force | Out-Null
+
+    # ---------------------------
+    # Fix PowerShellGet / PSGallery
+    # ---------------------------
+    Write-Output "Initializing PowerShell repositories..."
+
+    try {
+        $repo = Get-PSRepository -ErrorAction SilentlyContinue
+
+        if (-not $repo) {
+            Write-Output "Registering PSGallery..."
+            Register-PSRepository `
+                -Name "PSGallery" `
+                -SourceLocation "https://www.powershellgallery.com/api/v2" `
+                -InstallationPolicy Trusted
+        }
+        else {
+            Write-Output "Setting PSGallery to Trusted..."
+            Set-PSRepository -Name "PSGallery" -InstallationPolicy Trusted
+        }
+    }
+    catch {
+        Write-Warning "PSRepository initialization failed: $_"
+    }
+
+    # ---------------------------
+    # Install NuGet Provider
+    # ---------------------------
+    Write-Output "Installing NuGet provider..."
+    try {
+        Install-PackageProvider -Name NuGet -Force -Scope AllUsers -ErrorAction Stop
+    }
+    catch {
+        Write-Warning "NuGet install failed, continuing: $_"
+    }
+
+    # ---------------------------
+    # Install PSWindowsUpdate
+    # ---------------------------
+    Write-Output "Installing PSWindowsUpdate module..."
+
+    if (-not (Get-Module -ListAvailable -Name PSWindowsUpdate)) {
+        try {
+            Install-Module PSWindowsUpdate -Force -AllowClobber -Scope AllUsers -ErrorAction Stop
+        }
+        catch {
+            Write-Warning "Online install failed. Checking local copy..."
+
+            # OPTIONAL: fallback if you pre-stage module
+            $LocalModule = "C:\Windows\Temp\PSModules\PSWindowsUpdate"
+
+            if (Test-Path $LocalModule) {
+                Write-Output "Using pre-staged PSWindowsUpdate..."
+                Copy-Item $LocalModule -Destination "C:\Program Files\WindowsPowerShell\Modules\" -Recurse -Force
+            }
+            else {
+                throw "PSWindowsUpdate not available."
+            }
+        }
+    }
+
+    # ---------------------------
+    # Import Module
+    # ---------------------------
+    Import-Module PSWindowsUpdate -Force -ErrorAction Stop
+    Write-Output "PSWindowsUpdate module loaded."
+
+    # ---------------------------
+    # Enable Microsoft Update
+    # ---------------------------
+    try {
+        Write-Output "Enabling Microsoft Update service..."
+        Add-WUServiceManager -MicrosoftUpdate -Confirm:$false | Out-Null
+    }
+    catch {
+        Write-Warning "Microsoft Update enable failed (continuing): $_"
+    }
+
+    # ---------------------------
+    # Scan & Install Updates Loop
+    # ---------------------------
+    $MaxCycles = 5
+    $Cycle = 1
+
+    do {
+        Write-Output "==== Update Cycle $Cycle ===="
+
+        $updates = Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot -ErrorAction SilentlyContinue
+
+        if ($updates) {
+            Write-Output "$($updates.Count) updates found. Installing..."
+
+            Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot -AutoReboot:$false -ErrorAction Continue
+
+            Start-Sleep -Seconds 10
+        }
+        else {
+            Write-Output "No updates found."
+            break
+        }
+
+        $Cycle++
+    } while ($Cycle -le $MaxCycles)
+
+    Write-Output "===== Updates Complete ====="
 }
-
-Import-Module PSWindowsUpdate
-
-# Enable Microsoft Update
-Add-WUServiceManager -MicrosoftUpdate -Confirm:$false | Out-Null
-
-# ---- Create scheduled task for persistence ----
-$TaskName = "RunUpdatesResume"
-
-$Action = New-ScheduledTaskAction -Execute "PowerShell.exe" `
-    -Argument "-NoL -ExecutionPolicy Bypass -File C:\Windows\Temp\RunUpdates.ps1"
-
-$Trigger = New-ScheduledTaskTrigger -AtStartup
-
-Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger -Force | Out-Null
-
-do {
-    Write-Host "Scanning for updates..."
-
-    $updates = Get-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
-
-    if ($updates.Count -eq 0) {
-        Write-Host "No more updates."
-        break
-    }
-
-    Write-Host "Installing $($updates.Count) updates..."
-
-    Install-WindowsUpdate -MicrosoftUpdate -AcceptAll -IgnoreReboot
-
-    $reboot = (Get-WURebootStatus).RebootRequired
-
-    if ($reboot) {
-        Write-Host "Reboot required..."
-        Stop-Transcript
-        Restart-Computer -Force
-        exit
-    }
-
-} while ($true)
-
-# Cleanup scheduled task when done
-Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
-
-Write-Host "===== Updates Complete ====="
-
-Stop-Transcript
+catch {
+    Write-Error "FATAL ERROR: $_"
+}
+finally {
+    Stop-Transcript
+}
+``
