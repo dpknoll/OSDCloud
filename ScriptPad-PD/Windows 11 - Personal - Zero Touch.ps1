@@ -45,6 +45,15 @@ $OOBECMD | Out-File -FilePath 'C:\Windows\System32\OOBE.cmd' -Encoding ascii -Fo
 #================================================
 Write-Host -ForegroundColor Green "Create C:\Windows\Setup\Scripts\SetupComplete.cmd"
 $SetupCompleteCMD = @'
+# Added 6/19/2026
+# Download script
+PowerShell -NoL -ExecutionPolicy Bypass -Command ^
+"Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/dpknoll/OSDCloud/main/RunUpdates.ps1' -OutFile 'C:\Windows\Temp\RunUpdates.ps1'"
+
+REM Execute script
+PowerShell -NoL -ExecutionPolicy Bypass -File C:\Windows\Temp\RunUpdates.ps1
+``
+
 REM  Moving OSDCloud Logs
 md C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
 move /y C:\OSDCloud\Logs C:\ProgramData\Microsoft\IntuneManagementExtension\OSD
