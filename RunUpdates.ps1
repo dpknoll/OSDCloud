@@ -20,14 +20,14 @@ try {
         }
 
         Write-Output "`n--- Updates Found ---"
-        
+
         $UpdatesToInstall = New-Object -ComObject Microsoft.Update.UpdateColl
         $i = 1
 
         foreach ($Update in $SearchResult.Updates) {
             $kb = ($Update.KBArticleIDs -join ",")
             Write-Output ("[{0}] {1}" -f $i, $Update.Title)
-            
+
             if ($kb) {
                 Write-Output ("     KB: {0}" -f $kb)
             }
@@ -43,52 +43,30 @@ try {
         Write-Output "----------------------`n"
 
         # ---------------------------
-        # DOWNLOAD
+        # DOWNLOAD (Synchronous)
         # ---------------------------
         Write-Output "Downloading updates..."
-
         $Downloader = $UpdateSession.CreateUpdateDownloader()
         $Downloader.Updates = $UpdatesToInstall
 
-        $DownloadJob = $Downloader.BeginDownload()
+        $DownloadResult = $Downloader.Download()
 
-        while (-not $DownloadJob.IsCompleted) {
-            $progress = $Downloader.GetProgress()
-            Write-Progress -Activity "Downloading Updates" `
-                           -Status "$($progress.PercentComplete)% Complete" `
-                           -PercentComplete $progress.PercentComplete
-            Start-Sleep -Seconds 2
-        }
-
-        $Downloader.EndDownload($DownloadJob)
-
-        Write-Output "Download complete.`n"
+        Write-Output ("Download Result: {0}" -f $DownloadResult.ResultCode)
 
         # ---------------------------
-        # INSTALL
+        # INSTALL (Synchronous)
         # ---------------------------
-        Write-Output "Installing updates..."
-
+        Write-Output "`nInstalling updates..."
         $Installer = $UpdateSession.CreateUpdateInstaller()
         $Installer.Updates = $UpdatesToInstall
 
-        $InstallJob = $Installer.BeginInstall()
-
-        while (-not $InstallJob.IsCompleted) {
-            $progress = $Installer.GetProgress()
-            Write-Progress -Activity "Installing Updates" `
-                           -Status "$($progress.PercentComplete)% Complete" `
-                           -PercentComplete $progress.PercentComplete
-            Start-Sleep -Seconds 2
-        }
-
-        $Result = $Installer.EndInstall($InstallJob)
+        $InstallResult = $Installer.Install()
 
         Write-Output "`n--- Installation Results ---"
 
         for ($i = 0; $i -lt $UpdatesToInstall.Count; $i++) {
             $update = $UpdatesToInstall.Item($i)
-            $res = $Result.GetUpdateResult($i)
+            $res = $InstallResult.GetUpdateResult($i)
 
             Write-Output ("{0}" -f $update.Title)
             Write-Output ("  ResultCode : {0}" -f $res.ResultCode)
@@ -96,7 +74,7 @@ try {
             Write-Output ""
         }
 
-        if ($Result.RebootRequired) {
+        if ($InstallResult.RebootRequired) {
             Write-Output "Reboot required. Stopping cycles."
             break
         }
@@ -112,3 +90,4 @@ catch {
 finally {
     Stop-Transcript
 }
+``
